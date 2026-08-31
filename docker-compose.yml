@@ -1,0 +1,33 @@
+version: '3.8'
+
+# Linux/Docker Desktop - Standard port mapping
+services:
+  devin-automation:
+    build: .
+    container_name: devin-automation
+    ports:
+      - "8000:8000"
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - DEVIN_API_KEY=${DEVIN_API_KEY}
+      - DEVIN_ORG_ID=${DEVIN_ORG_ID}
+      - FORK_REPO=${FORK_REPO}
+      - UPSTREAM_REPO=${UPSTREAM_REPO:-apache/superset}
+      - POLL_INTERVAL_MINUTES=${POLL_INTERVAL_MINUTES:-5}
+      - MAX_ISSUES_PER_POLL=${MAX_ISSUES_PER_POLL:-5}
+      - MAX_CONCURRENT_SESSIONS=${MAX_CONCURRENT_SESSIONS:-3}
+      - MAX_ISSUES_TO_CLONE=${MAX_ISSUES_TO_CLONE:-20}
+      - DATABASE_URL=sqlite:///./data/devin_automation.db
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - devin-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  devin-data:
